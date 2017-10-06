@@ -4,20 +4,17 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using FirstWebApplication.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace FirstWebApplication.Controllers
 {
     public class BooksController : Controller
     {
         private List<Book> listBooks;
-        /// <summary>
-        /// Ham khoi tao BooksController
-        /// </summary>
+
         public BooksController()
         {
             listBooks = new List<Book>();
-            //Populate Sample Book Data
-            #region populate sample book data
             listBooks.Add(new Book()
             {
                 Id = 1,
@@ -25,7 +22,7 @@ namespace FirstWebApplication.Controllers
                 Author = "Tac gia sach 1",
                 PublicYear = 2017,
                 Price = 40000,
-                Cover ="Content/images/book1.jpg"
+                Cover = "Content/images/book1.jpg"
             });
             listBooks.Add(new Book()
             {
@@ -33,7 +30,7 @@ namespace FirstWebApplication.Controllers
                 Title = "Sach 2",
                 Author = "Tac gia sach 2",
                 PublicYear = 2018,
-                Price =50000,
+                Price = 50000,
                 Cover = "Content/images/book2.jpg"
             });
             listBooks.Add(new Book()
@@ -45,21 +42,69 @@ namespace FirstWebApplication.Controllers
                 Price = 100000,
                 Cover = "Content/images/book3.jpg"
             });
-            #endregion
         }
 
-        public ActionResult Index()
-        {
-            return View();
-        }
-        /// <summary>
-        /// Trang xem danh sach Book
-        /// </summary>
-        /// <returns></returns>
         public ActionResult ListBooks()
         {
             ViewBag.TitlePageName = "Book view page";
             return View(listBooks);
+        }
+
+        public ActionResult Detail(int? id)
+        {
+            if (id == null)
+            {
+                return HttpNotFound();
+            }
+            Book book = listBooks.Find(s => s.Id == id);
+
+            if (book == null)
+                return HttpNotFound();
+
+            return View(book);
+        }
+
+        public ActionResult Edit(int? id)
+        {
+            if (id == null)
+            {
+                return HttpNotFound();
+            }
+            Book book = listBooks.Find(s => s.Id == id);
+
+            if (book == null)
+                return HttpNotFound();
+
+            return View(book);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(Book book)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var editBook = listBooks.Find(b => b.Id == book.Id);
+                    editBook.Title = book.Title;
+                    editBook.Author = book.Author;
+                    editBook.Cover = book.Cover;
+                    editBook.Price = book.Price;
+                    editBook.PublicYear = book.PublicYear;
+                    return View("ListBooks", listBooks);
+                }
+                catch (Exception ex)
+                {
+                    //Log exception ex
+                    return HttpNotFound();
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("", "Input Model Not Valid!");
+                return View(book);
+            }
         }
     }
 }
